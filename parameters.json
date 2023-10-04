@@ -1,0 +1,8 @@
+{
+    "DATA_PATH": "data/iris.csv",
+    "DISTANCE": "lp_distance",
+    "DISTANCE_KWARGS": {"p": 3},
+    "DISTANCE_THRESHOLD": 0.05,
+    "K": 7,
+    "N_CLUSTERS": 3
+}

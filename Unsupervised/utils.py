@@ -1,10 +1,13 @@
 import itertools
+import json
 from multiprocessing import Pool, cpu_count
 from typing import Callable
 
 import numpy as np
 import pandas as pd
 import plotly.express as px
+
+from unsupervised.distances import match_distance
 
 
 def read_data(file_path: str) -> pd.DataFrame:
@@ -101,7 +104,7 @@ def plot_distance_matrix(distances: np.ndarray, name: str) -> None:
 
     fig = px.imshow(distances)
     # Save to html
-    fig.write_html(f"figures/distance_matrix_{name}.html")
+    fig.write_html(f"results/distance_matrix_{name}.html")
 
 
 def create_nd_grid_list(indices):
@@ -137,3 +140,38 @@ def create_nd_grid(num_partitions: int, dimension: int):
             itertools.product(*[range(dim_size) for dim_size in shape]),
         )
     return np.array(results) / num_partitions
+
+
+def get_params(file_path: str) -> tuple:
+    """Get the parameters from the json file. It returns the default parameters if
+    they don't exist in the file.
+
+    The default parameters are:
+    - DATA_PATH: "data/iris.csv"
+    - DISTANCE: lp_distance
+    - DISTANCE_KWARGS: {}
+    - DISTANCE_THRESHOLD: 0.1
+    - K: 10
+    - N_CLUSTERS: 3
+
+    Parameters
+    ----------
+    file_path: str
+        The file path.
+
+    Returns
+    -------
+    tuple
+        The parameters.
+    """
+
+    with open(file_path) as f:
+        params = json.load(f)
+    return (
+        params.get("DATA_PATH", "data/iris.csv"),
+        match_distance(params.get("DISTANCE", "lp_distance")),
+        params.get("DISTANCE_KWARGS", {}),
+        params.get("DISTANCE_THRESHOLD", 0.1),
+        params.get("K", 10),
+        params.get("N_CLUSTERS", 3),
+    )

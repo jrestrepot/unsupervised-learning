@@ -1,5 +1,7 @@
 """A module for computing different distances."""
 
+from typing import Callable
+
 import numpy as np
 
 
@@ -93,3 +95,27 @@ def cosine_distance(vector_a: np.ndarray, vector_b: np.ndarray) -> float:
     cosine_distance = 1 - cosine_similarity
 
     return cosine_distance
+
+
+def match_distance(distance: str) -> Callable:
+    """Match the distance function.
+
+    Parameters
+    ----------
+    distance: str
+        The distance function.
+
+    Returns
+    -------
+    Callable
+        The distance function.
+    """
+
+    if distance == "lp_distance":
+        return lp_distance
+    elif distance == "mahalanobis_distance":
+        return mahalanobis_distance
+    elif distance == "cosine_distance":
+        return cosine_distance
+    else:
+        raise ValueError(f"Distance function not supported: {distance}")
