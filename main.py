@@ -1,5 +1,6 @@
+from pprint import pprint
+
 import numpy as np
-import pandas as pd
 
 from unsupervised.clustering_algorithms.connected_components import (
     ConnectedComponentsCluster,
@@ -34,20 +35,20 @@ if __name__ == "__main__":
         DISTANCE_KWARGS["cov"] = np.cov(data.T)
 
     # Compute the connected components clusters
-    print("Connected Components")
     connected_components = ConnectedComponentsCluster(
         data, DISTANCE_THRESHOLD, DISTANCE, DISTANCE_KWARGS
     )
-    clusters = connected_components.predict()
     connected_components.plot_clusters(
         f"{DISTANCE_THRESHOLD}_dist_{DISTANCE.__name__}_{DISTANCE_KWARGS.get('p', '')}"
     )
+    print("")
 
     # Compute the KNN clusters
-    print("KNN")
     knn = KNN(data, K, DISTANCE, DISTANCE_KWARGS)
     knn.plot_clusters(f"{K}_{DISTANCE.__name__}_{DISTANCE_KWARGS.get('p', '')}")
+    print("")
 
     # Compute the distance clusters
-    print("Distance Clusters")
     dist_cluster = DistanceCluster(data, N_CLUSTERS, DISTANCE, DISTANCE_KWARGS)
+    pprint(dist_cluster.predict(0))
+    print("This clustering algorithm doesn't have a plot method.")
