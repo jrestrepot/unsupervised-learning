@@ -83,6 +83,7 @@ class ConnectedComponentsCluster:
                 The predicted clusters.
         """
 
+        print("Computing Connected Components Clusters...")
         # Get the connected components
         clusters = self.get_connected_components(self.threshold)
         return clusters
@@ -99,6 +100,8 @@ class ConnectedComponentsCluster:
 
         fig = go.Figure()
         clusters = self.predict()
+
+        print(f"Saving results as connected_clusters_{example_name}.html")
         for cluster in clusters:
             # Plot the clusters
             fig.add_trace(

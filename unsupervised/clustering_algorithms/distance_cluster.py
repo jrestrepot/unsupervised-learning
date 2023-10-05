@@ -52,6 +52,7 @@ class DistanceCluster:
                 The predicted clusters.
         """
 
+        print(f"Computing Distance Clusters for point: {obs_index}...")
         # Compute the distance between the data and the input
         distances = self.distance_matrix[obs_index]
         # Compute thresholds

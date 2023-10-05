@@ -71,6 +71,7 @@ class KNN:
                 The name of the example.
         """
 
+        print("Computing KNN Clusters")
         fig = go.Figure()
         for i in range(self.data.shape[0]):
             _, nearest_data = self.predict(i)
@@ -88,5 +89,6 @@ class KNN:
                     ),
                 )
             )
+        print(f"Saving results as knn_clusters_{example_name}.html")
         # Save to html
         fig.write_html(f"results/knn_clusters_{example_name}.html")
