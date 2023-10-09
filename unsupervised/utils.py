@@ -7,6 +7,13 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
+from unsupervised.descriptive import (
+    biplot,
+    descriptive_statistics,
+    plot_boxplot,
+    plot_histogram,
+    umap,
+)
 from unsupervised.distances import match_distance
 
 
@@ -54,7 +61,6 @@ def process_data(data: pd.DataFrame) -> pd.DataFrame:
     data = pd.get_dummies(data)
     # Drop the nans
     data = data.dropna()
-    data = data.values
     # Normalise with min max
     data = (data - data.min()) / (data.max() - data.min())
     return data
@@ -175,3 +181,35 @@ def get_params(file_path: str) -> tuple:
         params.get("K", 10),
         params.get("N_CLUSTERS", 3),
     )
+
+
+def describe_analyze_data(data: pd.DataFrame | np.ndarray) -> None:
+    """A function to describe and analyze the data.
+
+    Arguments:
+    ---------
+        data (pd.DataFrame | np.ndarray):
+            The data to describe and analyze.
+    """
+
+    print("Descriptive Statistics:")
+    if isinstance(data, np.ndarray):
+        data = pd.DataFrame(data)
+
+    # Compute descriptive statistics
+    descriptive_stats = descriptive_statistics(data)
+    print(descriptive_stats)
+
+    # Plot histograms
+    for column in data.columns:
+        plot_histogram(data, column)
+
+    # Plot boxplots
+    for column in data.columns:
+        plot_boxplot(data, column)
+
+    # Plot PCA
+    biplot(data)
+
+    # Plot UMAP
+    umap(data)

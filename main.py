@@ -2,13 +2,21 @@ from pprint import pprint
 
 import numpy as np
 
+from unsupervised.autoencoder import Autoencoder
 from unsupervised.clustering_algorithms.connected_components import (
     ConnectedComponentsCluster,
 )
 from unsupervised.clustering_algorithms.distance_cluster import DistanceCluster
 from unsupervised.clustering_algorithms.knn import KNN
+from unsupervised.descriptive import pairplot
 from unsupervised.distances import mahalanobis_distance
-from unsupervised.utils import create_nd_grid, get_params, process_data, read_data
+from unsupervised.utils import (
+    create_nd_grid,
+    describe_analyze_data,
+    get_params,
+    process_data,
+    read_data,
+)
 
 PARAMETERS_FILE = "parameters.json"
 
@@ -25,10 +33,28 @@ if __name__ == "__main__":
 
     # Read data
     data = read_data(DATA_PATH)
-    # Drop the id and species columns
-    data.drop(["Id", "Species"], axis=1, inplace=True)
+    # Drop the id column
+    data.drop(["Id"], axis=1, inplace=True)
+    pairplot(data, "Species")
+
+    # Drop the species column
+    data.drop(["Species"], axis=1, inplace=True)
     # Process the data
     data = process_data(data)
+
+    # Describe and analyze the data
+    describe_analyze_data(data)
+    data = data.to_numpy()
+
+    # Compute the autoencoder low dimensional representation
+    autoencoder = Autoencoder(data, 4, [2])
+    autoencoder.fit()
+    latent_space_low = autoencoder.encode()
+
+    # Compute the autoencoder high dimensional representation
+    autoencoder = Autoencoder(data, 4, [6])
+    autoencoder.fit()
+    latent_space_high = autoencoder.encode()
 
     # Set distance kwargs for the mahalanobis distance
     if DISTANCE == mahalanobis_distance:
@@ -50,5 +76,4 @@ if __name__ == "__main__":
 
     # Compute the distance clusters
     dist_cluster = DistanceCluster(data, N_CLUSTERS, DISTANCE, DISTANCE_KWARGS)
-    pprint(dist_cluster.predict(0))
     print("This clustering algorithm doesn't have a plot method.")

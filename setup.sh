@@ -15,6 +15,7 @@ fi
 if [ "$(uname)" == "Darwin" ] || [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     source env/bin/activate
 else
+    echo "Activating virtual environment"
     source env/Scripts/activate
 fi
 
