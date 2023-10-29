@@ -54,12 +54,10 @@ class SubtractiveClustering:
                 The densities for all the data.
         """
 
-        result = np.sum(np.exp(-self.distances ** 2 / (self.ra / 2) ** 2), axis = 0)
+        result = np.sum(np.exp(-self.distances**2 / (self.ra / 2) ** 2), axis=0)
         return result
 
-    def density_measure(
-        self, center_index: int, prev_densities: list
-    ) -> float:
+    def density_measure(self, center_index: int, prev_densities: list) -> float:
         """Compute the densities for a given point.
 
         Arguments:
@@ -78,8 +76,7 @@ class SubtractiveClustering:
         func_center = prev_densities[center_index]
 
         return prev_densities - func_center * np.exp(
-            -self.distances[center_index] ** 2
-            / (self.rb / 2) ** 2
+            -self.distances[center_index] ** 2 / (self.rb / 2) ** 2
         )
 
     def predict(self) -> np.ndarray:
