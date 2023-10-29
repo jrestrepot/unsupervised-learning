@@ -131,21 +131,10 @@ def create_nd_grid(num_partitions: int, dimension: int):
     list: An n-dimensional grid represented as a list of tuples.
     """
 
-    try:
-        cpus = cpu_count()
-    except NotImplementedError:
-        cpus = 2  # arbitrary default
+    interval = np.linspace(0, 1, num_partitions)
+    tiles = np.tile(interval, dimension).reshape(-1, num_partitions)
 
-    shape = [num_partitions + 1] * dimension
-
-    print(f"Using {cpus} processes to create grid")
-    # Use multiprocessing to parallelize grid creation
-    with Pool(processes=cpus) as pool:
-        results = pool.map(
-            create_nd_grid_list,
-            itertools.product(*[range(dim_size) for dim_size in shape]),
-        )
-    return np.array(results) / num_partitions
+    return np.array(np.meshgrid(*tiles)).T.reshape(-1, dimension)
 
 
 def get_params(file_path: str) -> tuple:
@@ -174,12 +163,19 @@ def get_params(file_path: str) -> tuple:
     with open(file_path) as f:
         params = json.load(f)
     return (
-        params.get("DATA_PATH", "data/iris.csv"),
-        match_distance(params.get("DISTANCE", "lp_distance")),
-        params.get("DISTANCE_KWARGS", {}),
-        params.get("DISTANCE_THRESHOLD", 0.1),
-        params.get("K", 10),
-        params.get("N_CLUSTERS", 3),
+        params.get("data_path", "data/iris.csv"),
+        match_distance(params.get("distance", "lp_distance")),
+        params.get("distance_kwargs", {}),
+        params["connected_components"].get("distance_threshold", 0.1),
+        params["knn"].get("k", 10),
+        params["kmeans"].get("n_clusters", 3),
+        params["fuzzy_cmeans"].get("n_clusters", 3),
+        params["distance_clusters"].get("n_clusters", 3),
+        params["mountain_clustering"].get("num_partitions", 5),
+        params["mountain_clustering"].get("sigma", 0.5),
+        params["mountain_clustering"].get("beta", 0.8),
+        params["subtractive_clustering"].get("ra", 0.5),
+        params["subtractive_clustering"].get("rb", 1),
     )
 
 
