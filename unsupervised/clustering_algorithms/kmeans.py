@@ -45,7 +45,6 @@ class KMeans:
         self.max_iterations = max_iterations
         self.tolerance = tolerance
 
-
     def get_membership_matrix(self) -> int:
         """Get the membership matrix (a matriz of 0s and 1s, 1 means a data point
         belongs to a center).
@@ -57,13 +56,15 @@ class KMeans:
         """
 
         membership_matrix = np.zeros((self.n_clusters, self.data.shape[0]))
-        distance_matrix = pairwise_distance(self.centers, self.data, self.distance, self.distance_kwargs)
+        distance_matrix = pairwise_distance(
+            self.centers, self.data, self.distance, self.distance_kwargs
+        )
         # Getting the min distance is another way of viewing the function uij
-        minimum_distances_index = np.argmin(distance_matrix, axis = 0)
+        minimum_distances_index = np.argmin(distance_matrix, axis=0)
         points_index = np.arange(self.data.shape[0])
         membership_matrix[minimum_distances_index, points_index] = 1
         return membership_matrix, distance_matrix
-    
+
     def loss_function(self, membership_matrix, distance_matrix):
         """Compute the loss function given a membership matrix and a distance matrix.
 
@@ -80,8 +81,8 @@ class KMeans:
                 The loss function
         """
 
-        return np.sum(membership_matrix*distance_matrix**2)
-        
+        return np.sum(membership_matrix * distance_matrix**2)
+
     def update_centers(self, membership_matrix):
         """Update the centers given a membership matrix.
 
@@ -96,8 +97,11 @@ class KMeans:
         """
 
         for i in range(len(self.centers)):
-            self.centers[i] = 1/np.sum(membership_matrix[i])*np.sum(membership_matrix[i]*self.data.T, axis = 1)
-
+            self.centers[i] = (
+                1
+                / np.sum(membership_matrix[i])
+                * np.sum(membership_matrix[i] * self.data.T, axis=1)
+            )
 
     def predict(self) -> np.ndarray:
         """Predict the cluster of the given observation.
@@ -117,7 +121,9 @@ class KMeans:
         previous_loss = np.inf
         # Initiliaze centers randomly if not given
         if self.centers is None:
-            self.centers = self.data[np.random.choice(self.data.shape[0], self.n_clusters, replace = False)]
+            self.centers = self.data[
+                np.random.choice(self.data.shape[0], self.n_clusters, replace=False)
+            ]
         for _ in range(self.max_iterations):
             membership_matrix, distance_matrix = self.get_membership_matrix()
             self.update_centers(membership_matrix)
@@ -125,11 +131,9 @@ class KMeans:
             if abs(previous_loss - loss) < self.tolerance:
                 break
             previous_loss = loss
-        assignation = np.argmax(membership_matrix, axis = 0)
+        assignation = np.argmax(membership_matrix, axis=0)
         clusters = [np.where(assignation == i)[0] for i in range(self.n_clusters)]
         return clusters
-
-
 
     def plot_clusters(self, example_name: str) -> None:
         """Plot the clusters. It only plots the first three dimensions.
@@ -160,50 +164,3 @@ class KMeans:
             )
         # Save to html
         fig.write_html(f"results/kmeans_clusters_{example_name}.html")
-
-
-
-# class KMeans():
-#   def __init__(self, n_clusters, kind, inv_cov_matrix = None):
-#     self.n_clusters = n_clusters
-#     self.kind = kind
-#     self.losses = []
-#     self.inv_cov_matrix = inv_cov_matrix
-
-  
-#   def compute_loss(self, X, membership_matrix, distance_matrix, d):
-#     loss = 0
-#     intra_cluster_vectors_sums = np.zeros((self.n_clusters,d))
-#     count = 1
-#     for i in range(self.n_clusters):
-#       aux_indexes = np.where(membership_matrix[i,:] == 1)[0]
-#       intra_cluster_vectors_sums[i,:] = np.sum(X[aux_indexes, :], axis = 0)
-#       intra_cluster_sum = np.sum(distance_matrix[i,aux_indexes])
-#       loss += intra_cluster_sum
-#       count +=1
-#     return loss, intra_cluster_vectors_sums
-
-#   def train(self, X, tolerance, loss_tolerance, verbose = False):
-#     n_points, d = X.shape
-#     initial_indexes = np.random.choice(n_points, self.n_clusters, replace = False)
-#     initial_centers = X[initial_indexes]
-#     initial_membership_matrix,initial_distance_matrix = self.assign_points(X, initial_centers, n_points)
-#     initial_loss, intra_cluster_vectors_sums = self.compute_loss(X, initial_membership_matrix,initial_distance_matrix,d)
-#     self.losses.append(initial_loss)
-#     criteria = initial_loss
-#     membership_matrix = initial_membership_matrix
-#     count = 1
-#     while (criteria > tolerance) & (self.losses[-1] > loss_tolerance):
-#       centers_cardinality = np.sum(membership_matrix, axis = 1)
-#       new_centers = intra_cluster_vectors_sums/centers_cardinality.reshape(-1,1)
-#       membership_matrix, distance_matrix = self.assign_points(X, new_centers, n_points)
-#       loss, intra_cluster_vectors_sums = self.compute_loss(X,membership_matrix,distance_matrix,d)
-#       if verbose:
-#         print(f"iteration {count}: {loss}")
-#       self.losses.append(loss)
-#       criteria = abs(self.losses[count-1] - self.losses[count])
-#       count += 1
-#     if verbose:
-#       print(f"final loss: {self.losses[-1]}")
-#     centers = new_centers
-#     return centers, membership_matrix
