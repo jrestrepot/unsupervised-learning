@@ -1,79 +1,98 @@
-from pprint import pprint
-
 import numpy as np
+import plotly.graph_objects as go
 
-from unsupervised.autoencoder import Autoencoder
-from unsupervised.clustering_algorithms.connected_components import (
-    ConnectedComponentsCluster,
+from unsupervised.tests import (
+    test_high_dimensions,
+    test_low_dimensions,
+    test_original_dimensions,
 )
-from unsupervised.clustering_algorithms.distance_cluster import DistanceCluster
-from unsupervised.clustering_algorithms.knn import KNN
-from unsupervised.descriptive import pairplot
-from unsupervised.distances import mahalanobis_distance
-from unsupervised.utils import (
-    create_nd_grid,
-    describe_analyze_data,
-    get_params,
-    process_data,
-    read_data,
-)
+from unsupervised.utils import analyze_and_transform_data, get_params, read_data
 
 PARAMETERS_FILE = "parameters.json"
 
-if __name__ == "__main__":
-    # Set the parameters
-    (
-        DATA_PATH,
-        DISTANCE,
-        DISTANCE_KWARGS,
-        DISTANCE_THRESHOLD,
-        K,
-        N_CLUSTERS,
-    ) = get_params(PARAMETERS_FILE)
+# Set the parameters
+(
+    DATA_PATH,
+    DISTANCE,
+    DISTANCE_KWARGS,
+    DISTANCE_THRESHOLD,
+    K,
+    N_CLUSTERS_KMEANS,
+    N_CLUSTERS_FUZZY_CMEANS,
+    M_FUZZY_CMEANS,
+    N_CLUSTERS_DISTANCE,
+    NUM_PARTITIONS,
+    SIGMA,
+    BETA,
+    RA,
+) = get_params(PARAMETERS_FILE)
 
+
+def main():
+    # Seed for consistency
+    np.random.seed(42)
     # Read data
     data = read_data(DATA_PATH)
     # Drop the id column
     data.drop(["Id"], axis=1, inplace=True)
-    pairplot(data, "Species")
+    data, umap_embedding = analyze_and_transform_data(data, "Species")
+    # Define RB as 1.5 * RA
+    RB = 1.5 * np.array(RA)
 
-    # Drop the species column
-    data.drop(["Species"], axis=1, inplace=True)
-    # Process the data
-    data = process_data(data)
-
-    # Describe and analyze the data
-    describe_analyze_data(data)
-    data = data.to_numpy()
-
-    # Compute the autoencoder low dimensional representation
-    autoencoder = Autoencoder(data, 4, [2])
-    autoencoder.fit()
-    latent_space_low = autoencoder.encode()
-
-    # Compute the autoencoder high dimensional representation
-    autoencoder = Autoencoder(data, 4, [6])
-    autoencoder.fit()
-    latent_space_high = autoencoder.encode()
-
-    # Set distance kwargs for the mahalanobis distance
-    if DISTANCE == mahalanobis_distance:
-        DISTANCE_KWARGS["cov"] = np.cov(data.T)
-
-    # Compute the connected components clusters
-    connected_components = ConnectedComponentsCluster(
-        data, DISTANCE_THRESHOLD, DISTANCE, DISTANCE_KWARGS
+    # # Test with different dimensions
+    test_original_dimensions(
+        data,
+        DISTANCE,
+        DISTANCE_KWARGS,
+        DISTANCE_THRESHOLD,
+        M_FUZZY_CMEANS,
+        N_CLUSTERS_DISTANCE,
+        NUM_PARTITIONS,
+        SIGMA,
+        BETA,
+        RA,
+        RB,
     )
-    connected_components.plot_clusters(
-        f"{DISTANCE_THRESHOLD}_dist_{DISTANCE.__name__}_{DISTANCE_KWARGS.get('p', '')}"
+    test_low_dimensions(
+        data,
+        DISTANCE,
+        DISTANCE_KWARGS,
+        DISTANCE_THRESHOLD,
+        M_FUZZY_CMEANS,
+        N_CLUSTERS_DISTANCE,
+        NUM_PARTITIONS,
+        SIGMA,
+        BETA,
+        RA,
+        RB,
     )
-    print("")
+    test_high_dimensions(
+        data,
+        DISTANCE,
+        DISTANCE_KWARGS,
+        DISTANCE_THRESHOLD,
+        M_FUZZY_CMEANS,
+        N_CLUSTERS_DISTANCE,
+        NUM_PARTITIONS,
+        SIGMA,
+        BETA,
+        RA,
+        RB,
+    )
+    test_original_dimensions(
+        umap_embedding,
+        DISTANCE,
+        DISTANCE_KWARGS,
+        DISTANCE_THRESHOLD,
+        M_FUZZY_CMEANS,
+        N_CLUSTERS_DISTANCE,
+        NUM_PARTITIONS,
+        SIGMA,
+        BETA,
+        RA,
+        RB,
+    )
 
-    # Compute the KNN clusters
-    knn = KNN(data, K, DISTANCE, DISTANCE_KWARGS)
-    knn.plot_clusters(f"{K}_{DISTANCE.__name__}_{DISTANCE_KWARGS.get('p', '')}")
-    print("")
 
-    # Compute the distance clusters
-    dist_cluster = DistanceCluster(data, N_CLUSTERS, DISTANCE, DISTANCE_KWARGS)
-    print("This clustering algorithm doesn't have a plot method.")
+if __name__ == "__main__":
+    main()

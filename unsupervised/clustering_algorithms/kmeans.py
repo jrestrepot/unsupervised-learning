@@ -1,7 +1,7 @@
 """A module for clustering using kmeans algorithm."""
 
 from typing import Callable
-from multiprocessing import Pool, cpu_count
+
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -17,7 +17,7 @@ class KMeans:
         n_clusters: int,
         distance: Callable = lp_distance,
         distance_kwargs: dict | None = None,
-        centers: np.ndarray | None = None,
+        initial_centers: np.ndarray | None = None,
         max_iterations: int = 100,
         tolerance: float = 1e-5,
     ):
@@ -33,15 +33,19 @@ class KMeans:
                 The distance function to use. Defaults to lp_distance.
             distance_kwargs (dict, optional):
                 The distance function keyword arguments. Defaults to None.
-            centers (np.ndarray, optional):
+            initial_centers (np.ndarray, optional):
                 The initial centers. Defaults to None.
+            max_iterations (int, optional):
+                The maximum number of iterations. Defaults to 100.
+            tolerance (float, optional):
+                The tolerance for convergence. Defaults to 1e-5.
         """
 
         self.data = np.array(data)
         self.distance = distance
         self.distance_kwargs = distance_kwargs
         self.n_clusters = n_clusters
-        self.centers = centers
+        self.centers = initial_centers
         self.max_iterations = max_iterations
         self.tolerance = tolerance
 
@@ -117,23 +121,25 @@ class KMeans:
                 The predicted clusters.
         """
 
-        print(f"Computing KMeans...")
         previous_loss = np.inf
         # Initiliaze centers randomly if not given
         if self.centers is None:
             self.centers = self.data[
                 np.random.choice(self.data.shape[0], self.n_clusters, replace=False)
             ]
+        else:
+            one_iter = True
         for _ in range(self.max_iterations):
             membership_matrix, distance_matrix = self.get_membership_matrix()
+            if one_iter:
+                break
             self.update_centers(membership_matrix)
             loss = self.loss_function(membership_matrix, distance_matrix)
             if abs(previous_loss - loss) < self.tolerance:
                 break
             previous_loss = loss
-        assignation = np.argmax(membership_matrix, axis=0)
-        clusters = [np.where(assignation == i)[0] for i in range(self.n_clusters)]
-        return clusters
+        labels = np.argmax(membership_matrix, axis=0)
+        return labels
 
     def plot_clusters(self, example_name: str) -> None:
         """Plot the clusters. It only plots the first three dimensions.
@@ -144,10 +150,11 @@ class KMeans:
                 The name of the example.
         """
 
+        example_name = example_name + f"{self.data.shape[1]}_dim"
         fig = go.Figure()
-        clusters = self.predict()
+        labels = self.predict()
+        clusters = [np.where(labels == i)[0] for i in range(self.n_clusters)]
 
-        print(f"Saving results as kmeans_clusters_{example_name}.html")
         for cluster in clusters:
             # Plot the clusters
             fig.add_trace(
@@ -162,5 +169,5 @@ class KMeans:
                     ),
                 )
             )
-        # Save to html
-        fig.write_html(f"results/kmeans_clusters_{example_name}.html")
+        # Save to png
+        fig.write_html(f"results/kmeans_clusters_{example_name }.html")

@@ -1,15 +1,19 @@
-import itertools
 import json
-from multiprocessing import Pool, cpu_count
 from typing import Callable
 
 import numpy as np
 import pandas as pd
 import plotly.express as px
+from sklearn.metrics import (
+    calinski_harabasz_score,
+    davies_bouldin_score,
+    silhouette_score,
+)
 
 from unsupervised.descriptive import (
     biplot,
     descriptive_statistics,
+    pairplot,
     plot_boxplot,
     plot_histogram,
     umap,
@@ -87,6 +91,8 @@ def pairwise_distance(
 
     if distance_kwargs is None:
         distance_kwargs = {}
+    if distance.__name__ == "mahalanobis_distance":
+        distance_kwargs["cov"] = np.cov(matrix_a.T)
 
     # Compute the pairwise distance between two matrices
     distance_matrix = np.zeros((matrix_a.shape[0], matrix_b.shape[0]))
@@ -109,8 +115,8 @@ def plot_distance_matrix(distances: np.ndarray, name: str) -> None:
     """
 
     fig = px.imshow(distances)
-    # Save to html
-    fig.write_html(f"results/distance_matrix_{name}.html")
+    # Save to png
+    fig.write_html(f"results/distance_matrix_{name }.html")
 
 
 def create_nd_grid_list(indices):
@@ -162,20 +168,27 @@ def get_params(file_path: str) -> tuple:
 
     with open(file_path) as f:
         params = json.load(f)
+    if "distance" not in params:
+        raise ValueError("The distance function is not specified.")
+    if not isinstance(params["distance"], list):
+        raise ValueError("The distance parameter must be a list.")
+    distances = []
+    for distance in params["distance"]:
+        distances.append(match_distance(distance))
     return (
         params.get("data_path", "data/iris.csv"),
-        match_distance(params.get("distance", "lp_distance")),
-        params.get("distance_kwargs", {}),
-        params["connected_components"].get("distance_threshold", 0.1),
-        params["knn"].get("k", 10),
-        params["kmeans"].get("n_clusters", 3),
-        params["fuzzy_cmeans"].get("n_clusters", 3),
-        params["distance_clusters"].get("n_clusters", 3),
-        params["mountain_clustering"].get("num_partitions", 5),
-        params["mountain_clustering"].get("sigma", 0.5),
-        params["mountain_clustering"].get("beta", 0.8),
-        params["subtractive_clustering"].get("ra", 0.5),
-        params["subtractive_clustering"].get("rb", 1),
+        distances,
+        params.get("distance_kwargs", [{}]),
+        params["connected_components"].get("distance_threshold", [0.1]),
+        params["knn"].get("k", [10]),
+        params["kmeans"].get("n_clusters", [3]),
+        params["fuzzy_cmeans"].get("n_clusters", [3]),
+        params["fuzzy_cmeans"].get("m", [2]),
+        params["distance_clusters"].get("n_clusters", [3]),
+        params["mountain_clustering"].get("num_partitions", [5]),
+        params["mountain_clustering"].get("sigma", [0.5]),
+        params["mountain_clustering"].get("beta", [0.8]),
+        params["subtractive_clustering"].get("ra", [0.5]),
     )
 
 
@@ -207,5 +220,110 @@ def describe_analyze_data(data: pd.DataFrame | np.ndarray) -> None:
     # Plot PCA
     biplot(data)
 
-    # Plot UMAP
-    umap(data)
+
+def cluster_validation(
+    distance_matrix: np.ndarray, data: np.ndarray, cluster_lables: np.ndarray, **kwargs
+) -> tuple:
+    """A function to validate the clustering results.
+
+    Arguments:
+    ---------
+        distance_matrix (np.ndarray):
+            The pairwise distance matrix.
+        data (np.ndarray):
+            The data.
+        cluster_labels (np.ndarray):
+            The cluster labels.
+        kwargs:
+            The clustering parameters.
+
+    Returns:
+    --------
+        tuple:
+            The clustering parameters and the validation results.
+    """
+
+    if any(np.isnan(distance_matrix.flatten())):
+        print(distance_matrix)
+        raise ValueError("The distance matrix contains NaN values.")
+    # Compute the silhouette score
+    silhouette_score_value = silhouette_score(distance_matrix, cluster_lables)
+    # Compute the Davies-Bouldin score
+    davies_bouldin_score_value = davies_bouldin_score(data, cluster_lables)
+    # Compute the Calinski-Harabasz score
+    calinski_harabasz_score_value = calinski_harabasz_score(data, cluster_lables)
+
+    parameters_name = list(kwargs.keys())
+    parameters_name.extend(
+        [
+            "Silhouette",
+            "DB",
+            "CH",
+        ]
+    )
+    parameters = list(kwargs.values())
+    parameters.extend(
+        [
+            round(silhouette_score_value, 3),
+            round(davies_bouldin_score_value, 3),
+            round(calinski_harabasz_score_value, 3),
+        ]
+    )
+    return (parameters_name, parameters)
+
+
+def create_latex_table(cluster_validation_results: list[tuple], name: str) -> None:
+    """A function to create a latex table from the cluster validation results.
+
+    Arguments:
+    ---------
+        cluster_validation_results (list[tuple]):
+            The cluster validation results.
+        name (str):
+            The name of the table.
+    """
+
+    results = []
+    for columns, values in cluster_validation_results:
+        assert len(columns) == len(values)
+        results.append(values)
+
+    table = pd.DataFrame(
+        results,
+        columns=columns,
+    )
+
+    table = table.to_latex(index=False)
+    # Save to txt file
+    with open(f"tables/{name}.txt", "w") as f:
+        f.write(table)
+
+
+def analyze_and_transform_data(data: pd.DataFrame, target_column: str) -> np.ndarray:
+    """A function that saves the plots and descrptive analysis into files
+    and then it transforms the data
+
+    Parameters:
+    -----------
+    data: pd.DataFrame
+        The original untransformed data
+    target_column: str
+        The column we supervise
+
+    Returns:
+    --------
+    np.ndarray
+        The transformed data
+    """
+
+    "Compute descriptive statistics"
+    pairplot(data, target_column)
+    umap_embedding = umap(data, target_column)
+    # Drop the species column
+    data.drop([target_column], axis=1, inplace=True)
+    # Process the data
+    data = process_data(data)
+    umap_embedding = process_data(umap_embedding)
+    # Describe and analyze the data
+    describe_analyze_data(data)
+    return data.to_numpy(), umap_embedding.to_numpy()

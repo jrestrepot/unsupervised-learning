@@ -1,0 +1,22 @@
+\begin{tabular}{llrrrr}
+\toprule
+Distance & distance_kwargs & N & Silhouette & DB & CH \\
+\midrule
+lp_distance & 2 & 2 & 0.738000 & 0.332000 & 628.975000 \\
+lp_distance & 2 & 3 & 0.606000 & 3.402000 & 298.105000 \\
+lp_distance & 2 & 4 & 0.635000 & 0.480000 & 841.297000 \\
+lp_distance & 2 & 5 & 0.587000 & 0.577000 & 960.622000 \\
+lp_distance & 3 & 2 & 0.669000 & 0.578000 & 223.219000 \\
+lp_distance & 3 & 3 & 0.622000 & 0.538000 & 749.813000 \\
+lp_distance & 3 & 4 & 0.645000 & 0.469000 & 899.534000 \\
+lp_distance & 3 & 5 & 0.465000 & 3.878000 & 201.903000 \\
+mahalanobis_distance &  & 2 & 0.508000 & 0.916000 & 104.310000 \\
+mahalanobis_distance &  & 3 & 0.381000 & 4.017000 & 25.535000 \\
+mahalanobis_distance &  & 4 & 0.407000 & 5.183000 & 51.859000 \\
+mahalanobis_distance &  & 5 & 0.269000 & 5.736000 & 21.208000 \\
+cosine_distance &  & 2 & 0.844000 & 0.356000 & 604.459000 \\
+cosine_distance &  & 3 & 0.802000 & 0.339000 & 322.796000 \\
+cosine_distance &  & 4 & 0.760000 & 0.623000 & 359.485000 \\
+cosine_distance &  & 5 & 0.743000 & 0.604000 & 230.765000 \\
+\bottomrule
+\end{tabular}

@@ -1,10 +1,11 @@
 """A module for clustering using mountain clustering algorithm."""
 
 from typing import Callable
-from multiprocessing import Pool, cpu_count
+
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+
 from unsupervised.distances import lp_distance
 from unsupervised.utils import pairwise_distance
 
@@ -45,7 +46,7 @@ class SubtractiveClustering:
         self.rb = rb
         self.max_iterations = max_iterations
 
-    def density_measure_0(self) -> float:
+    def _density_measure_0(self) -> float:
         """Compute the first densities.
 
         Returns:
@@ -57,7 +58,7 @@ class SubtractiveClustering:
         result = np.sum(np.exp(-self.distances**2 / (self.ra / 2) ** 2), axis=0)
         return result
 
-    def density_measure(self, center_index: int, prev_densities: list) -> float:
+    def _density_measure(self, center_index: int, prev_densities: list) -> float:
         """Compute the densities for a given point.
 
         Arguments:
@@ -93,21 +94,21 @@ class SubtractiveClustering:
                 The predicted clusters.
         """
 
-        print(f"Computing Subtractive Clustering...")
         previous_centers = set()
 
         # Compute the first center
-        densities = self.density_measure_0()
+        densities = self._density_measure_0()
         center_index = np.argmax(densities)
 
         for _ in range(self.max_iterations):
             if center_index in previous_centers:
                 break
-            densities = self.density_measure(center_index, densities)
+            densities = self._density_measure(center_index, densities)
             previous_centers.add(center_index)
             center_index = np.argmax(densities)
         previous_centers.add(center_index)
-        return np.array(list(previous_centers))
+        centers = np.array(list(previous_centers))
+        return self.data[centers]
 
     def plot_clusters(self, example_name: str) -> None:
         """Plot the clusters of the given observation. It only plots the first three
@@ -119,9 +120,9 @@ class SubtractiveClustering:
                 The name of the example.
         """
 
+        example_name = example_name + f"{self.data.shape[1]}_dim"
         fig = go.Figure()
         clusters = self.predict()
-        print(f"Saving results as subtractive_centers_{example_name}.html")
         fig.add_trace(
             go.Scatter3d(
                 x=self.data[clusters, 0],
@@ -146,5 +147,5 @@ class SubtractiveClustering:
                 ),
             )
         )
-        # Save to html
-        fig.write_html(f"results/subtractive_centers_{example_name}.html")
+        # Save to png
+        fig.write_html(f"results/subtractive_{example_name }.html")

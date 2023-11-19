@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader, TensorDataset
 class Autoencoder(nn.Module):
     """Autoencoder model class."""
 
-    def __init__(self, data, input_dim, hidden_layer_dims):
+    def __init__(self, data: np.ndarray, input_dim: int, hidden_layer_dims: list[int]):
         super(Autoencoder, self).__init__()
 
         self.encoder_layers = nn.ModuleList()

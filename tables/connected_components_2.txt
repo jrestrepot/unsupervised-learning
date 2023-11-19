@@ -1,0 +1,15 @@
+\begin{tabular}{llrrrrr}
+\toprule
+Distance & distance_kwargs & N & Distance_Threshold & Silhouette & DB & CH \\
+\midrule
+lp_distance & 2 & 2 & 0.150000 & 0.740000 & 0.307000 & 576.024000 \\
+lp_distance & 2 & 2 & 0.200000 & 0.740000 & 0.307000 & 576.024000 \\
+lp_distance & 3 & 2 & 0.150000 & 0.722000 & 0.307000 & 576.024000 \\
+lp_distance & 3 & 2 & 0.200000 & 0.722000 & 0.307000 & 576.024000 \\
+cosine_distance &  & 3 & 0.010000 & 0.812000 & 0.348000 & 342.878000 \\
+cosine_distance &  & 3 & 0.020000 & 0.812000 & 0.348000 & 342.878000 \\
+cosine_distance &  & 2 & 0.030000 & 0.884000 & 0.307000 & 576.024000 \\
+cosine_distance &  & 2 & 0.040000 & 0.884000 & 0.307000 & 576.024000 \\
+cosine_distance &  & 2 & 0.050000 & 0.884000 & 0.307000 & 576.024000 \\
+\bottomrule
+\end{tabular}

@@ -34,7 +34,7 @@ class ConnectedComponentsCluster:
                 The distance function keyword arguments. Defaults to None.
         """
 
-        self.data = np.array(data)
+        self.data = data
         self.threshold = threshold
         self.distance_matrix = pairwise_distance(
             self.data, self.data, distance, distance_kwargs
@@ -83,14 +83,12 @@ class ConnectedComponentsCluster:
                 The predicted clusters.
         """
 
-        print("Computing Connected Components Clusters...")
         # Get the connected components
         clusters = self.get_connected_components(self.threshold)
         return clusters
 
     def plot_clusters(self, example_name: str) -> None:
-        """Plot the clusters of the given observation. It only plots the first three
-        dimensions.
+        """Plot the clusters. It only plots the first three dimensions.
 
         Arguments:
         ---------
@@ -98,10 +96,10 @@ class ConnectedComponentsCluster:
                 The name of the example.
         """
 
+        example_name = example_name + f"{self.data.shape[1]}_dim"
         fig = go.Figure()
         clusters = self.predict()
 
-        print(f"Saving results as connected_clusters_{example_name}.html")
         for cluster in clusters:
             # Plot the clusters
             fig.add_trace(
@@ -116,5 +114,5 @@ class ConnectedComponentsCluster:
                     ),
                 )
             )
-        # Save to html
-        fig.write_html(f"results/connected_clusters_{example_name}.html")
+        # Save to png
+        fig.write_html(f"results/connected_clusters_{example_name }.html")

@@ -1,9 +1,11 @@
 """A module for clustering using mountain clustering algorithm."""
 
 from typing import Callable
+
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+
 from unsupervised.distances import lp_distance
 from unsupervised.utils import create_nd_grid, pairwise_distance
 
@@ -49,7 +51,7 @@ class MountainClustering:
         self.beta = beta
         self.max_iterations = max_iterations
 
-    def mountain_function_0(self) -> float:
+    def _mountain_function_0(self) -> float:
         """Compute the mountain function for a given point.
 
         Returns:
@@ -61,7 +63,7 @@ class MountainClustering:
         result = np.sum(np.exp(-self.distances**2 / (2 * self.sigma**2)), axis=1)
         return result
 
-    def mountain_function(
+    def _mountain_function(
         self, center_index: int, prev_mountain_function: list
     ) -> float:
         """Compute the mountain function for a given point.
@@ -97,21 +99,21 @@ class MountainClustering:
                 The predicted clusters.
         """
 
-        print(f"Computing Mountain Clustering...")
         previous_centers = set()
 
         # Compute the first center
-        mountain_function = self.mountain_function_0()
+        mountain_function = self._mountain_function_0()
         center_index = np.argmax(mountain_function)
 
         for _ in range(self.max_iterations):
             if center_index in previous_centers:
                 break
-            mountain_function = self.mountain_function(center_index, mountain_function)
+            mountain_function = self._mountain_function(center_index, mountain_function)
             previous_centers.add(center_index)
             center_index = np.argmax(mountain_function)
         previous_centers.add(center_index)
-        return np.array(list(previous_centers))
+        centers = np.array(list(previous_centers))
+        return self.grid[centers]
 
     def plot_clusters(self, example_name: str) -> None:
         """Plot the clusters of the given observation. It only plots the first three
@@ -123,9 +125,9 @@ class MountainClustering:
                 The name of the example.
         """
 
+        example_name = example_name + f"{self.data.shape[1]}_dim"
         fig = go.Figure()
         clusters = self.predict()
-        print(f"Saving results as mountain_centers_{example_name}.html")
         fig.add_trace(
             go.Scatter3d(
                 x=self.grid[clusters, 0],
@@ -150,5 +152,5 @@ class MountainClustering:
                 ),
             )
         )
-        # Save to html
-        fig.write_html(f"results/mountain_centers_{example_name}.html")
+        # Save to png
+        fig.write_html(f"results/mountain_clusters_{example_name }.html")

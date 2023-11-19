@@ -55,7 +55,7 @@ def mahalanobis_distance(
         vector_b = vector_b.T
 
     # Compute the inverse of the covariance matrix
-    inv_cov = np.linalg.inv(cov)
+    inv_cov = np.linalg.pinv(cov)
     # Compute the Mahalanobis distance between two points
     distance = np.sqrt(
         np.dot(np.dot((vector_a - vector_b).T, inv_cov), (vector_a - vector_b))
@@ -88,8 +88,11 @@ def cosine_distance(vector_a: np.ndarray, vector_b: np.ndarray) -> float:
     norm_a = np.linalg.norm(vector_a)
     norm_b = np.linalg.norm(vector_b)
 
-    # Calculate the cosine similarity
-    cosine_similarity = dot_product / (norm_a * norm_b)
+    # Calculate the cosine similarity if the norms are 0
+    if norm_a == 0 or norm_b == 0:
+        cosine_similarity = 0
+    else:
+        cosine_similarity = dot_product / (norm_a * norm_b)
 
     # Calculate the cosine distance bvector_b subtracting from 1
     cosine_distance = 1 - cosine_similarity

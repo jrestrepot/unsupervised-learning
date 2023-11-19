@@ -44,12 +44,13 @@ def plot_histogram(data: pd.DataFrame | np.ndarray, column: str) -> None:
 
     if isinstance(data, pd.DataFrame):
         fig = px.histogram(data, x=column, title=f"Histogram of {column}")
-        # Save to html
-        fig.write_html(f"results/histogram_{column}.html")
+        # Save to png
+        fig.write_html(f"results/histogram_{column }.html")
     elif isinstance(data, np.ndarray):
         fig = go.Figure(data=[go.Histogram(x=data, name=column)])
         fig.update_layout(title=f"Histogram of {column}", xaxis_title=column)
-        fig.write_html(f"results/histogram_{column}.html")
+        # Save to png
+        fig.write_html(f"results/histogram_{column }.html")
     else:
         raise ValueError("Input data should be a pandas DataFrame or numpy ndarray.")
 
@@ -67,11 +68,13 @@ def plot_boxplot(data: pd.DataFrame | np.ndarray, column: str) -> None:
 
     if isinstance(data, pd.DataFrame):
         fig = px.box(data, y=column, title=f"Boxplot of {column}")
-        fig.write_html(f"results/boxplot_{column}.html")
+        # Save to png
+        fig.write_html(f"results/boxplot_{column }.html")
     elif isinstance(data, np.ndarray):
         fig = go.Figure(data=[go.Box(y=data, name=column)])
         fig.update_layout(title=f"Boxplot of {column}", yaxis_title=column)
-        fig.write_html(f"results/boxplot_{column}.html")
+        # Save to png
+        fig.write_html(f"results/boxplot_{column }.html")
     else:
         raise ValueError("Input data should be a pandas DataFrame or numpy ndarray.")
 
@@ -130,7 +133,7 @@ def biplot(data: pd.DataFrame | np.ndarray) -> None:
     fig.update_xaxes(title_text="Principal Component 1")
     fig.update_yaxes(title_text="Principal Component 2")
 
-    # Show the biplot
+    # Save to png
     fig.write_html("results/biplot.html")
 
 
@@ -151,12 +154,27 @@ def pairplot(data: pd.DataFrame | np.ndarray, hue: str) -> None:
     fig = ff.create_scatterplotmatrix(
         data, diag="histogram", index=hue, width=1500, height=700
     )
-    # fig = px.scatter_matrix(data, diag="histogram", dimensions=dimensions, color=hue)
+    # Save to png
     fig.write_html("results/pairplot.html")
 
 
-def umap(data: pd.DataFrame | np.ndarray) -> None:
-    reducer = UMAP()
-    embedding = reducer.fit_transform(data)
+def umap(data: pd.DataFrame | np.ndarray, target_column: str | None = None) -> None:
+    """A function to plot the UMAP of the data.
+
+    Arguments:
+    ---------
+        data (pd.DataFrame | np.ndarray):
+            The data to plot the UMAP of.
+        target_column (str):
+            The column to use for coloring the data.
+    """
+
+    reducer = UMAP(random_state=42, n_jobs=-1)
+    embedding = reducer.fit_transform(data.drop(columns=[target_column]))
     fig = px.scatter(embedding, x=0, y=1, title="UMAP")
     fig.write_html("results/umap.html")
+    embedding = pd.DataFrame(embedding)
+    embedding[target_column] = data[target_column]
+    fig = px.scatter(embedding, x=0, y=1, title="UMAP", color=target_column)
+    fig.write_html(f"results/umap_{target_column }.html")
+    return embedding.drop(columns=[target_column])

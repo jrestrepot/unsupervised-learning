@@ -52,7 +52,6 @@ class DistanceCluster:
                 The predicted clusters.
         """
 
-        print(f"Computing Distance Clusters for point: {obs_index}...")
         # Compute the distance between the data and the input
         distances = self.distance_matrix[obs_index]
         # Compute thresholds
@@ -60,6 +59,38 @@ class DistanceCluster:
         clusters = [[]] * self.n_clusters
         # Make predictions
         for i in range(self.n_clusters):
-            clusters[i] = self.data[distances <= thresholds * (i + 1)]
+            less_than = distances <= thresholds * (i + 1)
+            greater_than = distances >= thresholds * i
+            clusters[i] = np.argwhere(less_than & greater_than).flatten()
 
         return clusters
+
+    def plot_clusters(self, example_name: str, obs_index: int) -> None:
+        """Plot the clusters of the given observation. It only plots the first three
+        dimensions.
+
+        Arguments:
+        ---------
+            example_name (str):
+                The name of the example.
+        """
+
+        example_name = example_name + f"{self.data.shape[1]}_dim"
+        fig = go.Figure()
+        clusters = self.predict(obs_index)
+        for cluster in clusters:
+            # Plot the clusters
+            fig.add_trace(
+                go.Scatter3d(
+                    x=self.data[cluster, 0],
+                    y=self.data[cluster, 1],
+                    z=self.data[cluster, 2],
+                    mode="markers",
+                    marker=dict(
+                        size=3,
+                        opacity=0.5,
+                    ),
+                )
+            )
+        # Save to png
+        fig.write_html(f"results/distance_clusters_{example_name }.html")

@@ -1,29 +1,37 @@
 {
     "data_path": "data/iris.csv",
-    "distance": "lp_distance",
-    "distance_kwargs": {"p": 2},
+    "distance": ["lp_distance", "lp_distance", "mahalanobis_distance", "cosine_distance"],
+    "distance_kwargs": [{"p": 2},
+                        {"p": 3},
+                        {},
+                        {}],
     "connected_components":{
-        "distance_threshold": 0.05
+        "distance_threshold": [
+            [0.15, 0.2, 0.25, 0.3, 0.35],
+            [0.15, 0.2, 0.25, 0.3, 0.35],
+            [1.2, 1.3, 1.4, 1.5, 1.6],
+            [0.01, 0.02, 0.03, 0.04, 0.05]
+        ]
     },
     "knn": {
-        "k": 7
+        "k": [5,15,5]
     },
     "kmeans": {
-        "n_clusters": 3
+        "n_clusters": [2, 5, 1]
     },
     "fuzzy_cmeans":{
-        "n_clusters": 3
+        "n_clusters": [2, 5, 1],
+        "m": [2,4,1]
     },
     "distance_clusters":{
-        "n_clusters": 3
+        "n_clusters": [2, 5, 1]
     },
     "mountain_clustering":{
-        "num_partitions": 6,
-        "sigma": 0.5,
-        "beta": 1
+        "num_partitions": [4],
+        "sigma": [0.5, 1, 1.5],
+        "beta": [0.5, 1, 1.5]
     },
     "subtractive_clustering":{
-        "ra": 0.5,
-        "rb": 1.5
+        "ra": [0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
     }
 }
